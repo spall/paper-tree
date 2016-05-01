@@ -1,10 +1,11 @@
 #lang racket
 
 (require "semantics.rkt")
-(require (for-syntax racket/match))
 
 (provide create-node
-         create-edge 
+         create-edge
+         current-graph
+         graph
          (except-out (all-from-out racket) #%module-begin)
          (rename-out [my-module-begin #%module-begin]))
 
@@ -27,12 +28,12 @@ the guard procedure is used as the new parameter value.
 
 
 ;; create a new node
-(define-syntax-rule (create-node name val)
-  (current-graph (add-node (node name val '()) (current-graph))))
+(define-syntax-rule (create-node name content)
+  (current-graph (add-node (node name content '()) (current-graph))))
 
 ;; add an edge
-(define-syntax-rule (create-edge n1 n2 info)
-  (current-graph (add-edge (edge n2 n2 info) (current-graph))))
+(define-syntax-rule (create-edge n1 n2 relationship)
+  (current-graph (add-edge (edge n2 n2 relationship) (current-graph))))
 
 
 
