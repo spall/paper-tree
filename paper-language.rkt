@@ -15,7 +15,6 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
 
 (provide
  define-paper
- draw-graph
  size
  define-graph
  authors
@@ -25,7 +24,7 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
  (rename-out [my-module-begin #%module-begin]))
 
 (define current-graph
-  (make-parameter (graph '())
+  (make-parameter (graph '() '())
                   (lambda (f)
                     f)))
 
@@ -48,26 +47,12 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
 
 (define-syntax-rule (define-paper id bib)
   (begin
-    (define id (node (string->symbol (symbol->string (gensym))) bib '()))
+    (define id (node (string->symbol (symbol->string (gensym))) bib))
     (let ([g (current-graph)])
-      (current-graph (add-node id g)))))
+      (current-graph (add-vertex g id)))))
 
 (define-syntax-rule (size)
   (displayln (length (graph-nodes (current-graph)))))
-(define-syntax-rule (draw-graph)
-  (let* ([g (current-graph)]
-         [frame (new frame%
-                     [label "paper tree"]
-                     [width 1000]
-                     [height 1000])]
-         [canvas (new canvas% [parent frame]
-                      [paint-callback
-                       (lambda (canvas dc)
-                         (displayln (length (graph-nodes g)))
-                         (show-graph canvas dc g))])])
-   (send frame show #t)
-))
-
 
 (define-syntax define-graph
   (syntax-rules (author authors)
@@ -79,7 +64,7 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
           (and (member (author-element-names (parse-author name)) (authors-list (node-content n1)))
                (member (author-element-names (parse-author name)) (authors-list (node-content n2)))))
         (lambda (n1 n2)
-          (edge n1 n2))))]
+          (edge n1 n2 1))))]
     [(_ id authors (names ...+ . name))
      (define id
            (construct-graph
@@ -92,7 +77,7 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
                                                (authors-list (node-content n2))))
                            (names ...+ . name))))
             (lambda (n1 n2)
-              (edge n1 n2))))]
+              (edge n1 n2 1))))]
     ))
 
 (define authors-list
