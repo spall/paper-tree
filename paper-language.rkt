@@ -14,7 +14,6 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
 |#
 
 (provide
- find-paper
  define-paper
  draw-graph
  size
@@ -39,7 +38,7 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
 (define-paper paper1
   (make-bib
     #:title    "Reference: Racket"
-    #:author   (authors "Matthew Flatt" "PLT")
+    #:author   (authors "Mathew Flatt" "PLT")
     #:date     "2010"
     #:location (techrpt-location #:institution "PLT Inc."
                                  #:number "PLT-TR-2010-1")
@@ -49,14 +48,9 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
 
 (define-syntax-rule (define-paper id bib)
   (begin
-    (define id bib)
-    (let ([g (current-graph)]
-          [n (node id '())])
-      (current-graph (add-node n g)))))
-
-(define-syntax-rule (find-paper id)
-  (displayln (find-node id (current-graph))))
-
+    (define id (node (string->symbol (symbol->string (gensym))) bib '()))
+    (let ([g (current-graph)])
+      (current-graph (add-node id g)))))
 
 (define-syntax-rule (size)
   (displayln (length (graph-nodes (current-graph)))))
@@ -78,7 +72,6 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
 (define-syntax define-graph
   (syntax-rules (author authors)
     [(_ id author name)
-     (begin (displayln name)
      (define id
        (construct-graph
         (graph-nodes (current-graph))
@@ -86,7 +79,7 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
           (and (member (author-element-names (parse-author name)) (authors-list (node-content n1)))
                (member (author-element-names (parse-author name)) (authors-list (node-content n2)))))
         (lambda (n1 n2)
-          (edge n1 n2)))))]
+          (edge n1 n2))))]
     [(_ id authors (names ...+ . name))
      (define id
            (construct-graph
@@ -102,9 +95,6 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
               (edge n1 n2))))]
     ))
 
-
-
-
 (define authors-list
   (lambda (paper)
     (map string-trim
@@ -112,29 +102,7 @@ enough access to the structure.  basically copy autobib.rkt and provide more fun
                        "/"))))
     
 
-(define construct-graph
-  (lambda (nodes need-edge? make-edge)
-    (define helper
-      (lambda (node other-nodes)car
-        (cond
-          [(empty? other-nodes)
-           '()]
-          [(need-edge? node (car other-nodes))
-           (begin (displayln "making edge")
-           (cons (make-edge node (car other-nodes))
-                 (helper node (cdr other-nodes))))]
-          [else
-           (helper node (cdr other-nodes))])))
-    (define all-edges
-      (lambda (ns)
-        (if (empty? ns)
-            '()
-            (append (helper (car ns) (cdr ns))
-                    (all-edges (cdr ns))))))
-    (begin (displayln (length nodes))
-    (let ([edges (all-edges nodes)]
-          [new-graph (graph nodes)])  
-      (foldl add-edge new-graph edges)))))
+
 
 
 

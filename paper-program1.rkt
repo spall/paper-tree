@@ -19,17 +19,17 @@
                                  #:number "PLT-TR-2010-1")
     #:url      "http://racket-lang.org/tr1/"))
 
-(define-paper paper3
+
+(define-paper paper4
   (make-bib
-   #:title    "Paper"
-    #:author   (authors "Sarah Spall" "Scott Bauer")
-    #:date     "2011"
+    #:title    "Racketeering"
+    #:author   (authors "Matthew Flatt")
+    #:date     "2015"
     #:location (techrpt-location #:institution "PLT Inc."
-                                 #:number "PLT-TR-2010-1")
-    #:url      "http:fake.com"))
+                                 #:number "PLT-TR-2015-1")
+    #:url      "http://racket-lang.org/tr1/"))
 
-
-(define-graph author-graph authors (list "Matthew Flatt" "PLT"));; take all of the nodes in the current graph and draw edges between the nodes which share the author(s)
+(define-graph author-graph authors (list "Matthew Flatt"));; take all of the nodes in the current graph and draw edges between the nodes which share the author(s)
 
 (displayln author-graph)
 

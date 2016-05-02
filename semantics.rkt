@@ -7,11 +7,17 @@
 
 (define create-graph (lambda (n) (graph n)))
 
-(struct node (content edges) #:transparent)
+(struct node (id content edges) #:transparent)
 
 (struct edge (node1 node2 [directed #:auto])
   #:auto-value #f
   #:transparent) ;; add a direction. if direction it is always from node1 to node2, otherwise undirected.
+
+(define add-node
+  (lambda (n g)
+    (let* ([nodes (graph-nodes g)]
+           [new-nodes (append nodes (list n))])
+      (graph new-nodes))))
 
 ;; replace node in graph
 (define update-node
@@ -20,49 +26,29 @@
       (lambda (nodes)
         (cond
           [(empty? nodes)
-           (error 'update-node "failed because node ~s does not exist" (node-content node))]
-          [(equal? (node-content node) (node-content (car nodes)))
+           (error 'update-node "failed because node ~s does not exist" (node-id node))]
+          [(equal? (node-id node) (node-id (car nodes)))
            (cons node (cdr nodes))]
           [else
-           (helper (cdr nodes))])))
+           (cons (car nodes) (helper (cdr nodes)))])))
     (graph (helper (graph-nodes g)))))
-
-;; add node to graph
-;; make sure node with name doesnt already exist
-(define add-node
-  (lambda (node g)
-    (let ([nodes (graph-nodes g)])
-      (if (empty? (filter (lambda (n) (equal? (node-content n) (node-content node)))
-                          nodes))
-          (graph (append nodes (list node)))
-          (error 'add-node "failed because node ~s already exists" (node-content node))))))
 
 ;; add edge to node
 (define add-edge-to-node
   (lambda (e n) 
     (let ([edges (append (node-edges n) (list e))])
-      (node (node-content n) edges))))
+      (node (node-id n) (node-content n) edges))))
 
 ;; adds edge to the two nodes in edge. errors if cna't find nodes.
 (define add-edge
   (lambda (e g)
-    (define helper
-      (lambda (name ns)
-        (cond
-          [(empty? ns)
-           (error 'add-edge "failed because node ~s could not be found" name)]
-          [(equal? name (node-content (car ns)))
-           (car ns)]
-          [else
-           (helper name (cdr ns))])))
-    (let* ([nodes (graph-nodes g)]
-           [new-node1 (add-edge-to-node 
-                       e
-                       (helper (node-content (edge-node1 e)) nodes))]
-           [new-node2 (add-edge-to-node
-                       e
-                       (helper (node-content (edge-node2 e)) nodes))])
-      (update-node new-node2 
+    (let ([new-node1 (add-edge-to-node 
+                      e
+                      (edge-node1 e))]
+          [new-node2 (add-edge-to-node
+                      e
+                      (edge-node2 e))])
+      (update-node new-node2
                    (update-node new-node1 g)))))
 
 (define find-node
@@ -72,11 +58,33 @@
         (cond
           [(empty? ns)
            (error 'find-node "could not find node")]
-          [(equal? n (node-content (car ns)))
+          [(equal? (node-id n) (node-id (car ns)))
            (car ns)]
           [else
            (helper (cdr ns))])))
     (helper (graph-nodes g))))
+
+(define construct-graph
+  (lambda (nodes need-edge? make-edge)
+    (define helper
+      (lambda (node other-nodes)car
+        (cond
+          [(empty? other-nodes)
+           '()]
+          [(need-edge? node (car other-nodes))
+           (cons (make-edge node (car other-nodes))
+                 (helper node (cdr other-nodes)))]
+          [else
+           (helper node (cdr other-nodes))])))
+    (define all-edges
+      (lambda (ns)
+        (if (empty? ns)
+            '()
+            (append (helper (car ns) (cdr ns))
+                    (all-edges (cdr ns))))))
+    (let ([edges (all-edges nodes)]
+          [new-graph (graph nodes)])  
+      (foldl add-edge new-graph edges))))
 
 
 
