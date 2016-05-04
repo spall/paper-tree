@@ -14,6 +14,7 @@
          racket/contract)
 
 (provide define-cite
+         auto-bib-title
          author+date-style number-style
          make-bib in-bib (rename-out [auto-bib? bib?])
          extract-bib-author
@@ -46,7 +47,17 @@
 (define colbibnumber-style (make-style "Autocolbibnumber" autobib-style-extras))
 (define colbibentry-style (make-style "Autocolbibentry" autobib-style-extras))
 
-(define-struct auto-bib (author date title location url note is-book? key specific)) ;; This is what I care about in this file
+;; I added this printing function
+(define (auto-bib-print ab port mode)
+  (let ([str (auto-bib-title ab)]) ;; need to find something better to print
+        (case mode
+      [(#t) (write str port)]
+      [(#f) (display str port)]
+      [else (print str port mode)])))
+
+(define-struct auto-bib (author date title location url note is-book? key specific)
+  #:methods gen:custom-write
+  [(define write-proc auto-bib-print)]) ;; This is what I care about in this file
 (define-struct bib-group (ht))
 
 (define-struct (author-element element) (names cite))
