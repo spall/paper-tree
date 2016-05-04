@@ -1,12 +1,25 @@
 #lang racket
 
 (require graph)
+(require "autobib-copy.rkt")
+
 ;; all defined out doesn't work for functions defined in a structure? :(
 (provide (struct-out my-graph)
          (all-defined-out)
          graphviz)
 
-(struct node (id content) #:transparent)
+;; should just print content. 
+(define (node-print n port mode)
+  (let ([str (node-content n)])
+    (case mode
+      [(#t) (write str port)]
+      [(#f) (display str port)]
+      [else (print str port mode)])))
+
+(struct node (id content)
+  #:methods gen:custom-write
+  [(define write-proc node-print)]
+  #:transparent)
 
 (struct edge (node1 node2 [directed #:auto])
   #:auto-value #f
